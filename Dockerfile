@@ -1,19 +1,12 @@
-# Multi-stage build
-FROM golang:1.22-alpine AS build
-WORKDIR /src
-
-
-COPY go.mod ./
-RUN --mount=type=cache,target=/go/pkg/mod go mod download
-
-
+# Build stage
+FROM golang:1.21-alpine AS builder
+WORKDIR /app
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /out/ems-proxy ./cmd/ems-proxy
+RUN go build -v -o loxone-vo-json .
 
-
-# Minimal runtime image
-FROM scratch
-COPY --from=build /out/ems-proxy /ems-proxy
-USER 65532:65532
+# Final image
+FROM alpine:3.19
+WORKDIR /app
+COPY --from=builder /app/loxone-vo-json .
 EXPOSE 8080
-ENTRYPOINT ["/ems-proxy"]
+ENTRYPOINT ["./loxone-vo-json"]
