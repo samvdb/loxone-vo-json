@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -87,6 +88,14 @@ func init() {
 	// when this action is called directly.
 	rootCmd.Flags().StringVar(&flagServer, "server", "", "Proxy destination address (host or URL)")
 	rootCmd.Flags().IntVar(&flagPort, "port", 8080, "HTTP Proxy listen port")
-
+	// Read from environment if flag not set
+	if envServer := os.Getenv("SERVER"); envServer != "" {
+		flagServer = envServer
+	}
+	if envPort := os.Getenv("PORT"); envPort != "" {
+		if p, err := strconv.Atoi(envPort); err == nil {
+			flagPort = p
+		}
+	}
 	_ = rootCmd.MarkFlagRequired("server")
 }
